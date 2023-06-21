@@ -1,0 +1,21 @@
+{
+  "name": "file-manager",
+  "version": "1.0.0",
+  "description": "CLI File Manager utilities",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js -- --username=hi-bi"
+  },
+"repository": {
+    "type": "git",
+    "url": "git+https://github.com/hi-bi/file-manager.git"
+  },
+  "keywords": [
+    "cli",
+    "file",
+    "manager",
+    "utilities"
+  ],
+  "author": "hi-bi",
+  "license": "ISC"
+}
