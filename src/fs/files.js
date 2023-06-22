@@ -5,7 +5,6 @@ const { createHash } = await import('node:crypto');
 import { pipeline } from 'node:stream';
 import { createGzip, createGunzip, createBrotliCompress, createBrotliDecompress } from 'node:zlib';
 
-
 const failedMessage = "Operation failed";
 
 export const unzipFile = async (path, srcFile, dstFile) => {

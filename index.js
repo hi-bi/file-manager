@@ -2,6 +2,7 @@
     import * as os from 'node:os';
     import { userName } from './src/argsv/username.js';
     import { cdDir, lsDir, upDir, catFile, addFile, rnFile, cpFile, mvFile, rmFile, hshFile, zipFile, unzipFile } from './src/fs/files.js';
+    import { envOs } from './src/os/os.js'
 
     const cliFileManager = () => {
 
@@ -163,7 +164,17 @@
                             rl.prompt();
                         })
                         break;
-    
+
+                    case 'os':
+                        const envArg = input.split(" ")[1];
+
+                        envOs(envArg)
+                        .then( value => {
+                            console.log(workdirMessage + startDir);
+                            rl.prompt();
+                        })
+                        break;
+        
                     default:
                         console.log(invalidMessage);
                         console.log(workdirMessage + startDir);
