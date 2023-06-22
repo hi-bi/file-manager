@@ -1,7 +1,7 @@
     import * as readline from 'node:readline';
     import * as os from 'node:os';
     import { userName } from './src/argsv/username.js';
-    import { cdDir, lsDir, upDir } from './src/fs/files.js';
+    import { cdDir, lsDir, upDir, catFile } from './src/fs/files.js';
 
     const cliFileManager = () => {
 
@@ -66,6 +66,17 @@
                             rl.prompt();
                         })
                         break;
+
+                    case 'cat':
+                            const catArg = input.split(" ")[1];
+
+                            catFile(startDir, catArg)
+                            .then( value => {
+                                console.log(workdirMessage + startDir);
+                                rl.prompt();
+                            })
+                        break;
+    
     
                     default:
                         console.log(invalidMessage);
