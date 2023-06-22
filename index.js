@@ -1,7 +1,7 @@
     import * as readline from 'node:readline';
     import * as os from 'node:os';
     import { userName } from './src/argsv/username.js';
-    import { cdDir, upDir } from './src/fs/files.js';
+    import { cdDir, lsDir, upDir } from './src/fs/files.js';
 
     const cliFileManager = () => {
 
@@ -42,11 +42,13 @@
                         console.log(workdirMessage + startDir);
                         rl.prompt();
                         break;
+
                     case 'up':
                         startDir = upDir(startDir);
                         console.log(workdirMessage + startDir);
                         rl.prompt();
-                    break;
+                        break;
+
                     case 'cd':
                         const cdPath = input.substring(3).replace('"', '').replace('"', '');
                         const p = cdDir(startDir, cdPath);
@@ -56,6 +58,15 @@
                             rl.prompt();
                         })
                         break;
+
+                    case 'ls':
+                        lsDir(startDir)
+                        .then( value => {
+                            console.log(workdirMessage + startDir);
+                            rl.prompt();
+                        })
+                        break;
+    
                     default:
                         console.log(invalidMessage);
                         console.log(workdirMessage + startDir);
