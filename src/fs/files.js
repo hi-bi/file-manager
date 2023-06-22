@@ -1,8 +1,117 @@
 import { access, appendFile, constants, readdir, rename, rm } from 'node:fs/promises';
 import { dirname, normalize, sep } from 'node:path';
 import { createReadStream, createWriteStream } from 'node:fs';
+const { createHash } = await import('node:crypto');
+import { pipeline } from 'node:stream';
+import { createGzip, createGunzip, createBrotliCompress, createBrotliDecompress } from 'node:zlib';
+
 
 const failedMessage = "Operation failed";
+
+export const unzipFile = async (path, srcFile, dstFile) => {
+    let srcPath;
+    let dstPath;
+
+    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
+        srcPath = normalize(srcFile);
+    } else {
+        srcPath = normalize( path + sep + srcFile);
+    }
+
+    if (dstFile.startsWith(sep) || dstFile.search('/[:]/') > 0) {
+        dstPath = normalize(dstFile);
+    } else {
+        dstPath = normalize( path + sep + dstFile);
+    }
+
+    try {
+        const zipStream = createReadStream(srcPath);
+        const writeStream = createWriteStream(dstPath);
+        const brotliObj = createBrotliDecompress();
+
+        pipeline(zipStream, brotliObj, writeStream, 
+            (err) => {
+                if (err) {
+                    console.log(failedMessage + ': ' + err.message);
+                    return false;
+                }
+            } 
+        );
+
+        return true;
+    } catch (error) {
+        console.log(failedMessage + ': ' + error.message);
+        return false;
+    }
+}
+
+export const zipFile = async (path, srcFile, dstFile) => {
+    let srcPath;
+    let dstPath;
+
+    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
+        srcPath = normalize(srcFile);
+    } else {
+        srcPath = normalize( path + sep + srcFile);
+    }
+
+    if (dstFile.startsWith(sep) || dstFile.search('/[:]/') > 0) {
+        dstPath = normalize(dstFile);
+    } else {
+        dstPath = normalize( path + sep + dstFile);
+    }
+
+    try {
+        const readStream = createReadStream(srcPath);
+        const zipStream = createWriteStream(dstPath);
+        const brotliObj = createBrotliCompress();
+
+        pipeline(readStream, brotliObj, zipStream, 
+            (err) => {
+                if (err) {
+                    console.log(failedMessage + ': ' + err.message);
+                    return false;
+                }
+            } 
+        );
+
+        return true;
+    } catch (error) {
+        console.log(failedMessage + ': ' + error.message);
+        return false;
+    }
+}
+
+export const hshFile = async (path, srcFile) => {
+    let srcPath;
+
+    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
+        srcPath = normalize(srcFile);
+    } else {
+        srcPath = normalize( path + sep + srcFile);
+    }
+
+    try {
+
+        const hash = createHash('sha256');
+
+        const readStream = createReadStream(srcPath) ;
+
+        readStream.on('readable', () => {
+            const data = readStream.read();
+            if (data)
+              hash.update(data);
+            else {
+              console.log(`${hash.digest('hex')}`);
+            }
+        });
+        return true;
+    
+    } catch (error) {
+        console.log(failedMessage + ': ' + error.message);
+        return false;
+    }
+}
 
 export const rmFile = async (path, srcFile) => {
     let srcPath;

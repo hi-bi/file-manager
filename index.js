@@ -1,10 +1,12 @@
     import * as readline from 'node:readline';
     import * as os from 'node:os';
     import { userName } from './src/argsv/username.js';
-    import { cdDir, lsDir, upDir, catFile, addFile, rnFile, cpFile, mvFile, rmFile } from './src/fs/files.js';
+    import { cdDir, lsDir, upDir, catFile, addFile, rnFile, cpFile, mvFile, rmFile, hshFile, zipFile, unzipFile } from './src/fs/files.js';
 
     const cliFileManager = () => {
 
+        try {
+            
             const workdirMessage = "You are currently in ";
             const invalidMessage = "Invalid input";
             const failedMessage = "Operation failed";
@@ -130,6 +132,38 @@
                         })
                         break;
 
+                    case 'hash':
+                        const hshArg1 = input.split(" ")[1];
+
+                        hshFile(startDir, hshArg1)
+                        .then( value => {
+                            console.log(workdirMessage + startDir);
+                            rl.prompt();
+                        })
+                        break;
+
+                    case 'compress':
+                        const zipArg1 = input.split(" ")[1];
+                        const zipArg2 = input.split(" ")[2];
+
+                        zipFile(startDir, zipArg1, zipArg2)
+                        .then( value => {
+                            console.log(workdirMessage + startDir);
+                            rl.prompt();
+                        })
+                        break;
+
+                    case 'decompress':
+                        const unzipArg1 = input.split(" ")[1];
+                        const unzipArg2 = input.split(" ")[2];
+
+                        unzipFile(startDir, unzipArg1, unzipArg2)
+                        .then( value => {
+                            console.log(workdirMessage + startDir);
+                            rl.prompt();
+                        })
+                        break;
+    
                     default:
                         console.log(invalidMessage);
                         console.log(workdirMessage + startDir);
@@ -145,7 +179,12 @@
                 
                 process.exit(0);
             }); 
-        
+
+        } catch (error) {
+            console.log(failedMessage + ': ' + error.message);
+           
+        }
+            
     };
 
     cliFileManager();
