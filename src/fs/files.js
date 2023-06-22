@@ -1,8 +1,40 @@
 import { access, appendFile, constants, readdir, rename } from 'node:fs/promises';
 import { dirname, normalize, sep } from 'node:path';
-import { createReadStream } from 'node:fs';
+import { createReadStream, createWriteStream } from 'node:fs';
 
 const failedMessage = "Operation failed";
+
+export async function cpFile (path, srcFile, dstFile) {
+    let srcPath;
+    let dstPath;
+
+    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
+        srcPath = normalize(srcFile);
+    } else {
+        srcPath = normalize( path + sep + srcFile);
+    }
+
+    if (dstFile.startsWith(sep) || dstFile.search('/[:]/') > 0) {
+        dstPath = normalize(dstFile);
+    } else {
+        dstPath = normalize( path + sep + dstFile);
+    }
+
+    try {
+        const readStream = createReadStream(srcPath);
+        const writeStream = createWriteStream(dstPath);
+
+        readStream.on('readable', () => {
+            const data = readStream.read();
+            if (data) {
+                writeStream.write(data);
+            }
+        });
+
+    } catch (error) {
+        console.log(failedMessage + ': ' + error.message);
+    }
+}
 
 export async function rnFile (path, oldFile, newFile) {
     let oldPath;
