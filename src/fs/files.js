@@ -1,8 +1,53 @@
-import { access, constants, readdir } from 'node:fs/promises';
+import { access, appendFile, constants, readdir, rename } from 'node:fs/promises';
 import { dirname, normalize, sep } from 'node:path';
 import { createReadStream } from 'node:fs';
 
 const failedMessage = "Operation failed";
+
+export async function rnFile (path, oldFile, newFile) {
+    let oldPath;
+    let newPath;
+
+    if (oldFile.startsWith(sep) || oldFile.search('/[:]/') > 0) {
+        oldPath = normalize(oldFile);
+    } else {
+        oldPath = normalize( path + sep + oldFile);
+    }
+    
+    if (newFile.startsWith(sep) || newFile.search('/[:]/') > 0) {
+        newPath = normalize(newFile);
+    } else {
+        newPath = normalize( path + sep + newFile);
+    }
+
+    try {
+        await rename(oldPath, newPath);
+
+    } catch (error) {
+        console.log(failedMessage + ': ' + error.message);
+    }
+}
+
+export async function addFile (path, addArg) {
+    let pathToAdd;
+
+    if (addArg.startsWith(sep) || addArg.search('/[:]/') > 0) {
+        pathToAdd = normalize(addArg);
+    } else {
+        pathToAdd = normalize( path + sep + addArg);
+    }
+    
+    try {
+        const options = {
+            encoding: 'utf8',
+            flag: 'ax'
+        }
+        await appendFile(pathToAdd, '', options);
+
+    } catch (error) {
+        console.log(failedMessage + ': ' + error.message);
+    }
+}
 
 export async function catFile (path, catArg) {
     let pathToCat;
