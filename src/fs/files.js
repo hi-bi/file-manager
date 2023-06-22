@@ -1,10 +1,30 @@
-import { access, appendFile, constants, readdir, rename } from 'node:fs/promises';
+import { access, appendFile, constants, readdir, rename, rm } from 'node:fs/promises';
 import { dirname, normalize, sep } from 'node:path';
 import { createReadStream, createWriteStream } from 'node:fs';
 
 const failedMessage = "Operation failed";
 
-export async function cpFile (path, srcFile, dstFile) {
+export const rmFile = async (path, srcFile) => {
+    let srcPath;
+
+    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
+        srcPath = normalize(srcFile);
+    } else {
+        srcPath = normalize( path + sep + srcFile);
+    }
+
+    try {
+
+        await rm(srcPath);
+        return srcPath;
+    
+    } catch (error) {
+        console.log(failedMessage + ': ' + error.message);
+        return srcPath;
+    }
+}
+
+export const mvFile = async (path, srcFile, dstFile) => {
     let srcPath;
     let dstPath;
 
@@ -31,8 +51,52 @@ export async function cpFile (path, srcFile, dstFile) {
             }
         });
 
+        readStream.on('end', () => {
+
+            rm(srcPath);
+            return srcPath;
+        });
+
     } catch (error) {
         console.log(failedMessage + ': ' + error.message);
+        return path;
+    }
+}
+
+export const cpFile = async (path, srcFile, dstFile) => {
+    let srcPath;
+    let dstPath;
+
+    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
+        srcPath = normalize(srcFile);
+    } else {
+        srcPath = normalize( path + sep + srcFile);
+    }
+
+    if (dstFile.startsWith(sep) || dstFile.search('/[:]/') > 0) {
+        dstPath = normalize(dstFile);
+    } else {
+        dstPath = normalize( path + sep + dstFile);
+    }
+
+    try {
+        const readStream = createReadStream(srcPath);
+        const writeStream = createWriteStream(dstPath);
+
+        readStream.on('readable', () => {
+            const data = readStream.read();
+            if (data) {
+                writeStream.write(data);
+            }
+        });
+
+        readStream.on('end', () => {
+            return srcPath; 
+        });
+
+    } catch (error) {
+        console.log(failedMessage + ': ' + error.message);
+        return path;
     }
 }
 

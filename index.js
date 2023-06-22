@@ -1,7 +1,7 @@
     import * as readline from 'node:readline';
     import * as os from 'node:os';
     import { userName } from './src/argsv/username.js';
-    import { cdDir, lsDir, upDir, catFile, addFile, rnFile, cpFile } from './src/fs/files.js';
+    import { cdDir, lsDir, upDir, catFile, addFile, rnFile, cpFile, mvFile, rmFile } from './src/fs/files.js';
 
     const cliFileManager = () => {
 
@@ -109,6 +109,27 @@
                         })
                         break;
     
+                    case 'mv':
+                        const mvArg1 = input.split(" ")[1];
+                        const mvArg2 = input.split(" ")[2];
+
+                        mvFile(startDir, mvArg1, mvArg2)
+                        .then( value => {
+                            console.log(workdirMessage + startDir);
+                            rl.prompt();
+                        })
+                        break;
+
+                    case 'rm':
+                        const rmArg1 = input.split(" ")[1];
+
+                        rmFile(startDir, rmArg1)
+                        .then( value => {
+                            console.log(workdirMessage + startDir);
+                            rl.prompt();
+                        })
+                        break;
+
                     default:
                         console.log(invalidMessage);
                         console.log(workdirMessage + startDir);
