@@ -13,8 +13,6 @@ export const cdDir = async (path, cdPath) => {
         newDir = normalize( path + sep + cdPath);
     }
 
-    console.log('newDir', newDir);
-
     try {
        await access(newDir, constants.R_OK) 
        return newDir
