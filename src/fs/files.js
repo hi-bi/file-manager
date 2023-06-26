@@ -1,4 +1,4 @@
-import { access, appendFile, constants, readdir, rename, rm } from 'node:fs/promises';
+import { access, appendFile, constants, readdir, mkdir, rename, rm } from 'node:fs/promises';
 import { dirname, normalize, sep } from 'node:path';
 import { createReadStream, createWriteStream } from 'node:fs';
 const { createHash } = await import('node:crypto');
@@ -7,23 +7,48 @@ import { createBrotliCompress, createBrotliDecompress } from 'node:zlib';
 
 const failedMessage = "Operation failed";
 
+const checkPathReadAccess = async (path) => {
+    try {
+        await access(path, constants.R_OK)
+        return true;
+    } catch (error) {
+        return false;        
+    }
+}
+
+const checkPathWriteAccess = async (path) => {
+    try {
+        await access(path, constants.W_OK)
+        return true;
+    } catch (error) {
+        return false;        
+    }
+}
+
+const setPath = (path, adPath) => {
+    
+    let resultPath;
+
+    if (adPath.startsWith(sep) || adPath.search('/[:]/') > 0) {
+        resultPath = normalize(adPath);
+    } else {
+        resultPath = normalize( path + sep + adPath);
+    }
+    return resultPath;
+}
+
 export const unzipFile = async (path, srcFile, dstFile) => {
-    let srcPath;
-    let dstPath;
-
-    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
-        srcPath = normalize(srcFile);
-    } else {
-        srcPath = normalize( path + sep + srcFile);
-    }
-
-    if (dstFile.startsWith(sep) || dstFile.search('/[:]/') > 0) {
-        dstPath = normalize(dstFile);
-    } else {
-        dstPath = normalize( path + sep + dstFile);
-    }
 
     try {
+        const srcPath = setPath(path, srcFile);
+        const result = await checkPathReadAccess(srcPath);
+        if (!result) {
+            console.error(failedMessage);
+            return path;
+        }
+
+        const dstPath = setPath(path, dstFile);
+
         const zipStream = createReadStream(srcPath);
         const writeStream = createWriteStream(dstPath);
         const brotliObj = createBrotliDecompress();
@@ -31,7 +56,7 @@ export const unzipFile = async (path, srcFile, dstFile) => {
         pipeline(zipStream, brotliObj, writeStream, 
             (err) => {
                 if (err) {
-                    console.log(failedMessage + ': ' + err.message);
+                    console.error(failedMessage);
                     return false;
                 }
             } 
@@ -39,28 +64,23 @@ export const unzipFile = async (path, srcFile, dstFile) => {
 
         return true;
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
         return false;
     }
 }
 
 export const zipFile = async (path, srcFile, dstFile) => {
-    let srcPath;
-    let dstPath;
-
-    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
-        srcPath = normalize(srcFile);
-    } else {
-        srcPath = normalize( path + sep + srcFile);
-    }
-
-    if (dstFile.startsWith(sep) || dstFile.search('/[:]/') > 0) {
-        dstPath = normalize(dstFile);
-    } else {
-        dstPath = normalize( path + sep + dstFile);
-    }
 
     try {
+        const srcPath = setPath(path, srcFile);
+        const result = await checkPathReadAccess(srcPath);
+        if (!result) {
+            console.error(failedMessage);
+            return path;
+        }
+
+        const dstPath = setPath(path, dstFile);
+
         const readStream = createReadStream(srcPath);
         const zipStream = createWriteStream(dstPath);
         const brotliObj = createBrotliCompress();
@@ -68,7 +88,7 @@ export const zipFile = async (path, srcFile, dstFile) => {
         pipeline(readStream, brotliObj, zipStream, 
             (err) => {
                 if (err) {
-                    console.log(failedMessage + ': ' + err.message);
+                    console.error(failedMessage);
                     return false;
                 }
             } 
@@ -76,21 +96,20 @@ export const zipFile = async (path, srcFile, dstFile) => {
 
         return true;
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
         return false;
     }
 }
 
 export const hshFile = async (path, srcFile) => {
-    let srcPath;
-
-    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
-        srcPath = normalize(srcFile);
-    } else {
-        srcPath = normalize( path + sep + srcFile);
-    }
 
     try {
+        const srcPath = setPath(path, srcFile);
+        const result = await checkPathWriteAccess(srcPath);
+        if (!result) {
+            console.error(failedMessage);
+            return path;
+        }
 
         const hash = createHash('sha256');
 
@@ -107,50 +126,50 @@ export const hshFile = async (path, srcFile) => {
         return true;
     
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
         return false;
     }
 }
 
 export const rmFile = async (path, srcFile) => {
-    let srcPath;
-
-    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
-        srcPath = normalize(srcFile);
-    } else {
-        srcPath = normalize( path + sep + srcFile);
-    }
 
     try {
+        const srcPath = setPath(path, srcFile);
+        const result = await checkPathWriteAccess(srcPath);
+        if (!result) {
+            console.error(failedMessage);
+            return path;
+        }
 
         await rm(srcPath);
         return srcPath;
     
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
         return srcPath;
     }
 }
 
-export const mvFile = async (path, srcFile, dstFile) => {
-    let srcPath;
-    let dstPath;
-
-    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
-        srcPath = normalize(srcFile);
-    } else {
-        srcPath = normalize( path + sep + srcFile);
-    }
-
-    if (dstFile.startsWith(sep) || dstFile.search('/[:]/') > 0) {
-        dstPath = normalize(dstFile);
-    } else {
-        dstPath = normalize( path + sep + dstFile);
-    }
+export const mvFile = async (path, srcFile, dstDir) => {
 
     try {
+        const srcPath = setPath(path, srcFile);
+        const result = await checkPathReadAccess(srcPath);
+        if (!result) {
+            console.error(failedMessage);
+            return path;
+        }
+
+        const dstPath = setPath(path, dstDir);
+        const existDir = await checkPathWriteAccess(dstPath);
+        if (!existDir) {
+            await mkdir(dstPath);
+        }
+        
+        const dstFile = setPath(dstPath, srcFile);
+
         const readStream = createReadStream(srcPath);
-        const writeStream = createWriteStream(dstPath);
+        const writeStream = createWriteStream(dstFile);
 
         readStream.on('readable', () => {
             const data = readStream.read();
@@ -160,36 +179,36 @@ export const mvFile = async (path, srcFile, dstFile) => {
         });
 
         readStream.on('end', () => {
-
             rm(srcPath);
-            return srcPath;
+            return dstPath;
         });
 
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
         return path;
     }
 }
 
-export const cpFile = async (path, srcFile, dstFile) => {
-    let srcPath;
-    let dstPath;
-
-    if (srcFile.startsWith(sep) || srcFile.search('/[:]/') > 0) {
-        srcPath = normalize(srcFile);
-    } else {
-        srcPath = normalize( path + sep + srcFile);
-    }
-
-    if (dstFile.startsWith(sep) || dstFile.search('/[:]/') > 0) {
-        dstPath = normalize(dstFile);
-    } else {
-        dstPath = normalize( path + sep + dstFile);
-    }
+export const cpFile = async (path, srcFile, dstDir) => {
 
     try {
+        const srcPath = setPath(path, srcFile);
+        const result = await checkPathReadAccess(srcPath);
+        if (!result) {
+            console.error(failedMessage);
+            return path;
+        }
+
+        const dstPath = setPath(path, dstDir);
+        const existDir = await checkPathWriteAccess(dstPath);
+        if (!existDir) {
+            await mkdir(dstPath);
+        }
+        
+        const dstFile = setPath(dstPath, srcFile);
+
         const readStream = createReadStream(srcPath);
-        const writeStream = createWriteStream(dstPath);
+        const writeStream = createWriteStream(dstFile);
 
         readStream.on('readable', () => {
             const data = readStream.read();
@@ -199,70 +218,71 @@ export const cpFile = async (path, srcFile, dstFile) => {
         });
 
         readStream.on('end', () => {
-            return srcPath; 
+            return dstPath; 
         });
 
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
         return path;
     }
 }
 
 export async function rnFile (path, oldFile, newFile) {
-    let oldPath;
-    let newPath;
-
-    if (oldFile.startsWith(sep) || oldFile.search('/[:]/') > 0) {
-        oldPath = normalize(oldFile);
-    } else {
-        oldPath = normalize( path + sep + oldFile);
-    }
-    
-    if (newFile.startsWith(sep) || newFile.search('/[:]/') > 0) {
-        newPath = normalize(newFile);
-    } else {
-        newPath = normalize( path + sep + newFile);
-    }
 
     try {
+        const oldPath = setPath(path, oldFile);
+        const result = await checkPathReadAccess(oldPath);
+        if (!result) {
+            console.error(failedMessage);
+            return false;
+        }
+
+        const newPath = setPath(path, newFile);
+
         await rename(oldPath, newPath);
+        return true;
 
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
+        return false;
     }
 }
 
 export async function addFile (path, addArg) {
-    let pathToAdd;
-
-    if (addArg.startsWith(sep) || addArg.search('/[:]/') > 0) {
-        pathToAdd = normalize(addArg);
-    } else {
-        pathToAdd = normalize( path + sep + addArg);
-    }
     
     try {
+        const result = await checkPathWriteAccess(path);
+        if (!result) {
+            console.error(failedMessage);
+            return false;
+        }
+
+        const pathToAdd = setPath(path, addArg);
+
         const options = {
             encoding: 'utf8',
             flag: 'ax'
         }
         await appendFile(pathToAdd, '', options);
+        return true;
 
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
+        return false;
     }
 }
 
 export async function catFile (path, catArg) {
-    let pathToCat;
-
-    if (catArg.startsWith(sep) || catArg.search('/[:]/') > 0) {
-        pathToCat = normalize(catArg);
-    } else {
-        pathToCat = normalize( path + sep + catArg);
-    }
-
+    
     try {
+        const pathToCat = setPath(path, catArg);
+
+        const result = await checkPathReadAccess(pathToCat);
+        if (!result) {
+            console.error(failedMessage);
+            return false;
+        }
+
         const readStream = createReadStream(pathToCat, 'utf-8');
 
         readStream.on('readable', () => {
@@ -274,32 +294,41 @@ export async function catFile (path, catArg) {
         });
 
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
     }
 }
 
 export const cdDir = async (path, cdPath) => {
-    let newDir;
-
-    if (cdPath.startsWith(sep) || cdPath.search('/[:]/') > 0) {
-        newDir = normalize(cdPath);
-    } else {
-        newDir = normalize( path + sep + cdPath);
-    }
-
     try {
-       await access(newDir, constants.R_OK) 
-       return newDir
+
+        const newDir = setPath(path, cdPath);
+
+        const result = await checkPathReadAccess(newDir);
+        if (result) {
+            return newDir;
+        } else {
+            console.error(failedMessage);
+            return path;
+        }
+            
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
         return path;
     }
+
 }
 
 export const lsDir = async (path) => {
 
     try {
         const outputArray = new Array;
+
+        const result = await checkPathReadAccess(path);
+        if (!result) {
+            console.error(failedMessage);
+            return false;
+        } 
+
         const files = await readdir(path, {withFileTypes: true});
 
         for (const file of files) {
@@ -321,9 +350,11 @@ export const lsDir = async (path) => {
         })
 
         console.table(outputArray);
+        return true;
 
     } catch (error) {
-        console.error(failedMessage + ': ' + error.message);
+        console.error(failedMessage);
+        return false;
     }
 
 }
