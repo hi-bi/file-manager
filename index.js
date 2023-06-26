@@ -10,7 +10,6 @@
             
             const workdirMessage = "You are currently in ";
             const invalidMessage = "Invalid input";
-            const failedMessage = "Operation failed";
 
             const startMessage = "Welcome to the File Manager, " + userName + "!";
             const exitMessage = "Thank you for using File Manager, " + userName + ", goodbye!";
@@ -192,7 +191,7 @@
             }); 
 
         } catch (error) {
-            console.log(failedMessage + ': ' + error.message);
+            console.error(failedMessage + ': ' + error.message);
            
         }
             

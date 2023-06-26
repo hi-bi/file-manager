@@ -48,7 +48,7 @@ export const envOs = async (cmnd) => {
         return true;
     
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
         return false;
     }
 }
@@ -80,7 +80,7 @@ export const lsDir = async (path) => {
         console.table(outputArray);
 
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
     }
 
 }

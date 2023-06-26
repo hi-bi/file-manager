@@ -3,7 +3,7 @@ import { dirname, normalize, sep } from 'node:path';
 import { createReadStream, createWriteStream } from 'node:fs';
 const { createHash } = await import('node:crypto');
 import { pipeline } from 'node:stream';
-import { createGzip, createGunzip, createBrotliCompress, createBrotliDecompress } from 'node:zlib';
+import { createBrotliCompress, createBrotliDecompress } from 'node:zlib';
 
 const failedMessage = "Operation failed";
 
@@ -39,7 +39,7 @@ export const unzipFile = async (path, srcFile, dstFile) => {
 
         return true;
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
         return false;
     }
 }
@@ -76,7 +76,7 @@ export const zipFile = async (path, srcFile, dstFile) => {
 
         return true;
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
         return false;
     }
 }
@@ -107,7 +107,7 @@ export const hshFile = async (path, srcFile) => {
         return true;
     
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
         return false;
     }
 }
@@ -127,7 +127,7 @@ export const rmFile = async (path, srcFile) => {
         return srcPath;
     
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
         return srcPath;
     }
 }
@@ -166,7 +166,7 @@ export const mvFile = async (path, srcFile, dstFile) => {
         });
 
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
         return path;
     }
 }
@@ -203,7 +203,7 @@ export const cpFile = async (path, srcFile, dstFile) => {
         });
 
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
         return path;
     }
 }
@@ -228,7 +228,7 @@ export async function rnFile (path, oldFile, newFile) {
         await rename(oldPath, newPath);
 
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
     }
 }
 
@@ -249,7 +249,7 @@ export async function addFile (path, addArg) {
         await appendFile(pathToAdd, '', options);
 
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
     }
 }
 
@@ -274,7 +274,7 @@ export async function catFile (path, catArg) {
         });
 
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
     }
 }
 
@@ -291,7 +291,7 @@ export const cdDir = async (path, cdPath) => {
        await access(newDir, constants.R_OK) 
        return newDir
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
         return path;
     }
 }
@@ -323,7 +323,7 @@ export const lsDir = async (path) => {
         console.table(outputArray);
 
     } catch (error) {
-        console.log(failedMessage + ': ' + error.message);
+        console.error(failedMessage + ': ' + error.message);
     }
 
 }
